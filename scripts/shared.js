@@ -82,8 +82,16 @@
     App.events.dispatchEvent(new CustomEvent('period', { detail: period }));
   }
 
-  // ── 탭 라우팅 ─────────────────────────────────
+  // ── 탭 라우팅 (lazy iframe 로드) ──────────────
   const TABS = ['product', 'ops', 'pl'];
+  function lazyLoadFrame(name) {
+    const panel = document.getElementById(`tab-${name}`);
+    if (!panel) return;
+    const frame = panel.querySelector('iframe.tab-frame');
+    if (frame && !frame.src && frame.dataset.src) {
+      frame.src = frame.dataset.src;
+    }
+  }
   function showTab(name) {
     if (!TABS.includes(name)) name = 'product';
     App.state.activeTab = name;
@@ -91,6 +99,7 @@
     document.querySelectorAll('.tab-panel').forEach(p => {
       p.hidden = (p.id !== `tab-${name}`);
     });
+    lazyLoadFrame(name);
     if (location.hash !== `#${name}`) history.replaceState(null, '', `#${name}`);
     App.events.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
   }
