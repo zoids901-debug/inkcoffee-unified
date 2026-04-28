@@ -84,12 +84,47 @@
 
   // ── 탭 라우팅 (lazy iframe 로드) ──────────────
   const TABS = ['product', 'ops', 'pl'];
+
+  // 각 iframe 내부에서 숨길 selector (제목 + 자체 필터바)
+  const HIDE_SELECTORS = {
+    product: '.hdr, .sticky-bar',
+    ops:     '.hdr, .ctrl-bar',
+    pl:      '.header, .sel-card',
+  };
+
+  function injectFrameStyles(name, frame) {
+    try {
+      const doc = frame.contentDocument;
+      if (!doc) return;
+      const sel = HIDE_SELECTORS[name];
+      if (!sel) return;
+      let style = doc.getElementById('__unified_inject_style');
+      if (!style) {
+        style = doc.createElement('style');
+        style.id = '__unified_inject_style';
+        doc.head.appendChild(style);
+      }
+      style.textContent = `
+        ${sel} { display: none !important; }
+        body { padding-top: 0 !important; }
+        .wrap, .container, .main { padding-top: 12px !important; }
+      `;
+    } catch (e) {
+      console.warn('[App] frame style inject failed:', e);
+    }
+  }
+
   function lazyLoadFrame(name) {
     const panel = document.getElementById(`tab-${name}`);
     if (!panel) return;
     const frame = panel.querySelector('iframe.tab-frame');
-    if (frame && !frame.src && frame.dataset.src) {
+    if (!frame) return;
+    if (!frame.src && frame.dataset.src) {
       frame.src = frame.dataset.src;
+      frame.addEventListener('load', () => injectFrameStyles(name, frame), { once: false });
+    } else {
+      // 이미 로드된 경우 다시 한 번 주입 (재진입 안전)
+      injectFrameStyles(name, frame);
     }
   }
   function showTab(name) {
@@ -189,6 +224,7 @@
         format: 'YYYY-MM-DD',
         numberOfMonths: 2,
         numberOfColumns: 2,
+        moveByOneMonth: true,  // ◀▶ 클릭 시 1개월씩 이동
         autoApply: true,
         firstDay: 0,  // 일요일 시작
         tooltipText: { one: '일', other: '일' },
