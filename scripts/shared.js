@@ -1,147 +1,207 @@
-// 공통 유틸 + 탭 라우팅 + 전역 기간/매장 컨트롤
+// 공통 + 탭 라우팅 + 운영 대시보드 패턴의 기간/매장 컨트롤
 (function () {
   'use strict';
 
-  // ── 공통 유틸 ─────────────────────────────────
   window.App = window.App || {};
   App.util = {
     comma: (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR')),
     M: (n) => (n == null ? '-' : (Math.round(n / 1e4) / 100).toLocaleString('ko-KR') + 'M'),
-    pct: (n, total) => (total > 0 ? ((n / total) * 100).toFixed(1) + '%' : '-'),
-    qs: (sel, root) => (root || document).querySelector(sel),
-    qsa: (sel, root) => Array.from((root || document).querySelectorAll(sel)),
-    fmtMonth: (d) => d.toISOString().slice(0,7),  // 'YYYY-MM'
-    addMonths: (d, n) => { const x = new Date(d); x.setMonth(x.getMonth()+n); return x; },
   };
-  const U = App.util;
+
+  // ── 매장 정의 (운영 대시보드와 동일 순서/색) ─────
+  const STORES = ['하남','다산','가산','수원','광주','운정'];
+  const COLORS = {
+    하남: '#3B82F6', 다산: '#10B981', 가산: '#F59E0B',
+    수원: '#8B5CF6', 광주: '#EF4444', 운정: '#06B6D4'
+  };
+  App.STORES = STORES;
+  App.COLORS = COLORS;
 
   // ── 전역 상태 ─────────────────────────────────
   App.state = {
-    period: { preset: '3m', from: null, to: null },
-    stores: ['전체','가산','다산','수원','하남','광주','운정'],
+    period: { preset: 'mtd', start: null, end: null },
+    activeStores: new Set(STORES),
     activeTab: null,
   };
   App.events = new EventTarget();
 
-  // ── 기간 프리셋 계산 ──────────────────────────
+  // ── 날짜 유틸 ─────────────────────────────────
+  const toStr = d => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  };
+  const fmt = s => s ? s.replaceAll('-', '.') : '';
+
   function computePeriod(preset) {
-    const today = new Date(); today.setDate(1);
-    const tm = U.fmtMonth(today);
-    let from, to;
+    const now = new Date();
+    const today = toStr(now);
+    let start, end;
     switch(preset) {
-      case 'thismonth': from = tm; to = tm; break;
-      case 'lastmonth': { const d = U.addMonths(today, -1); from = U.fmtMonth(d); to = from; break; }
-      case '3m': from = U.fmtMonth(U.addMonths(today,-2)); to = tm; break;
-      case '6m': from = U.fmtMonth(U.addMonths(today,-5)); to = tm; break;
-      case 'ytd': from = `${today.getFullYear()}-01`; to = tm; break;
-      default: return null;  // custom
+      case 'yesterday': {
+        const d = new Date(now); d.setDate(d.getDate()-1);
+        start = end = toStr(d); break;
+      }
+      case 'week': {
+        const d = new Date(now);
+        const dow = d.getDay() || 7;  // 1=월 ~ 7=일
+        d.setDate(d.getDate() - dow + 1);
+        start = toStr(d); end = today; break;
+      }
+      case 'mtd': {
+        const d = new Date(now); d.setDate(1);
+        start = toStr(d); end = today; break;
+      }
+      case 'last_month': {
+        const d = new Date(now); d.setDate(1); d.setMonth(d.getMonth()-1);
+        start = toStr(d);
+        const e = new Date(d); e.setMonth(e.getMonth()+1); e.setDate(0);
+        end = toStr(e); break;
+      }
+      case '30d': {
+        const d = new Date(now); d.setDate(d.getDate()-29);
+        start = toStr(d); end = today; break;
+      }
+      case '3m': {
+        const d = new Date(now); d.setDate(1); d.setMonth(d.getMonth()-2);
+        start = toStr(d); end = today; break;
+      }
+      default: return null;
     }
-    return { preset, from, to };
+    return { preset, start, end };
   }
 
-  function applyPeriod(period, fromUI = false) {
+  function setPeriod(period) {
     App.state.period = period;
-    const fromInput = document.getElementById('date-from');
-    const toInput = document.getElementById('date-to');
-    if (fromInput && period.from) fromInput.value = period.from;
-    if (toInput && period.to) toInput.value = period.to;
     document.querySelectorAll('.preset-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.preset === period.preset);
+      b.classList.toggle('active', b.dataset.p === period.preset);
     });
+    const inp = document.getElementById('dateRangeInput');
+    if (inp) inp.value = `${fmt(period.start)} ~ ${fmt(period.end)}`;
     App.events.dispatchEvent(new CustomEvent('period', { detail: period }));
   }
 
-  function applyStores(stores) {
-    App.state.stores = stores;
-    document.querySelectorAll('.pill').forEach(p => {
-      p.classList.toggle('checked', stores.includes(p.dataset.store));
-    });
-    App.events.dispatchEvent(new CustomEvent('stores', { detail: stores }));
-  }
-
-  // ── 이벤트 바인딩 ─────────────────────────────
-  document.addEventListener('click', (e) => {
-    // 탭 전환
-    const tab = e.target.closest('.tab');
-    if (tab && tab.dataset.tab) { showTab(tab.dataset.tab); return; }
-
-    // 프리셋 버튼
-    const preset = e.target.closest('.preset-btn');
-    if (preset) {
-      const p = computePeriod(preset.dataset.preset);
-      if (p) applyPeriod(p);
-      else applyPeriod({ preset: 'custom', from: App.state.period.from, to: App.state.period.to });
-      return;
-    }
-
-    // 매장 pill
-    const pill = e.target.closest('.pill');
-    if (pill) {
-      const store = pill.dataset.store;
-      let cur = [...App.state.stores];
-      if (store === '전체') {
-        if (cur.includes('전체') && cur.length === 7) {
-          cur = ['전체'];  // 전체만 선택
-        } else {
-          cur = ['전체','가산','다산','수원','하남','광주','운정'];
-        }
-      } else {
-        cur = cur.filter(s => s !== '전체');
-        if (cur.includes(store)) cur = cur.filter(s => s !== store);
-        else cur.push(store);
-        if (cur.length === 6) cur = ['전체','가산','다산','수원','하남','광주','운정'];
-        if (cur.length === 0) cur = ['전체','가산','다산','수원','하남','광주','운정'];
-      }
-      applyStores(cur);
-      return;
-    }
-  });
-
-  // 직접 month input 변경
-  document.addEventListener('change', (e) => {
-    if (e.target.id === 'date-from' || e.target.id === 'date-to') {
-      const from = document.getElementById('date-from').value;
-      const to = document.getElementById('date-to').value;
-      if (from && to) applyPeriod({ preset: 'custom', from, to });
-    }
-  });
-
-  // ── 탭 라우팅 ───────────────────────────────────
+  // ── 탭 라우팅 ─────────────────────────────────
   const TABS = ['product', 'ops', 'pl'];
   function showTab(name) {
     if (!TABS.includes(name)) name = 'product';
     App.state.activeTab = name;
-    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.hdr-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
     document.querySelectorAll('.tab-panel').forEach(p => {
       p.hidden = (p.id !== `tab-${name}`);
     });
     if (location.hash !== `#${name}`) history.replaceState(null, '', `#${name}`);
     App.events.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
   }
+  App.showTab = showTab;
 
-  window.addEventListener('hashchange', () => {
-    const t = (location.hash || '#product').slice(1);
-    if (t !== App.state.activeTab) showTab(t);
-  });
-
+  // ── 초기화 ───────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    // 초기 기간: 최근 3개월
-    applyPeriod(computePeriod('3m'));
-    applyStores(App.state.stores);
+
+    // 탭 클릭
+    document.querySelectorAll('.hdr-tab').forEach(b => {
+      b.addEventListener('click', () => showTab(b.dataset.tab));
+    });
+    window.addEventListener('hashchange', () => {
+      const t = (location.hash || '#product').slice(1);
+      if (t !== App.state.activeTab) showTab(t);
+    });
+
+    // 프리셋 버튼
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = computePeriod(btn.dataset.p);
+        if (p) setPeriod(p);
+      });
+    });
+
+    // 매장 pills
+    const pillsEl = document.getElementById('storePills');
+    const allBtn = document.getElementById('pillAll');
+
+    function updateAllBtn() {
+      const allOn = STORES.every(s => App.state.activeStores.has(s));
+      allBtn.classList.toggle('on', allOn);
+      allBtn.style.background = allOn ? '#1E293B' : '';
+      allBtn.style.borderColor = '#1E293B';
+      allBtn.style.color = allOn ? '#fff' : '#1E293B';
+    }
+    allBtn.addEventListener('click', () => {
+      const allOn = STORES.every(s => App.state.activeStores.has(s));
+      if (allOn) {
+        App.state.activeStores.clear();
+        document.querySelectorAll('.pill[data-store]').forEach(el => {
+          el.classList.remove('on');
+          el.style.background = '';
+        });
+      } else {
+        STORES.forEach(s => App.state.activeStores.add(s));
+        document.querySelectorAll('.pill[data-store]').forEach(el => {
+          el.classList.add('on');
+          el.style.background = COLORS[el.dataset.store] + '22';
+        });
+      }
+      updateAllBtn();
+      App.events.dispatchEvent(new CustomEvent('stores', { detail: [...App.state.activeStores] }));
+    });
+
+    STORES.forEach(s => {
+      const el = document.createElement('button');
+      el.className = 'pill on';
+      el.innerHTML = `<span class="store-dot" style="background:${COLORS[s]}"></span>${s}`;
+      el.style.borderColor = COLORS[s];
+      el.style.color = COLORS[s];
+      el.style.background = COLORS[s] + '22';
+      el.dataset.store = s;
+      el.addEventListener('click', () => {
+        if (App.state.activeStores.has(s)) {
+          App.state.activeStores.delete(s);
+          el.classList.remove('on');
+          el.style.background = '';
+        } else {
+          App.state.activeStores.add(s);
+          el.classList.add('on');
+          el.style.background = COLORS[s] + '22';
+        }
+        updateAllBtn();
+        App.events.dispatchEvent(new CustomEvent('stores', { detail: [...App.state.activeStores] }));
+      });
+      pillsEl.appendChild(el);
+    });
+    updateAllBtn();
+
+    // Litepicker (날짜 범위 선택)
+    if (window.Litepicker) {
+      const picker = new Litepicker({
+        element: document.getElementById('dateRangeInput'),
+        singleMode: false,
+        format: 'YYYY-MM-DD',
+        numberOfMonths: 2,
+        numberOfColumns: 2,
+        autoApply: true,
+        setup: (p) => {
+          p.on('selected', (start, end) => {
+            setPeriod({ preset: 'custom', start: start.format('YYYY-MM-DD'), end: end.format('YYYY-MM-DD') });
+          });
+        }
+      });
+      App.picker = picker;
+    }
+
+    // 초기 기간: 이번 달
+    setPeriod(computePeriod('mtd'));
+
     // 초기 탭
     const t = (location.hash || '#product').slice(1);
     showTab(t);
   });
 
-  // ── 헬퍼 ─────────────────────────────────────
   App.fetchJson = async (url) => {
     const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(`HTTP ${r.status} on ${url}`);
     return r.json();
   };
-
-  App.setPeriod = applyPeriod;
-  App.setStores = applyStores;
 
   console.log('[App] shared.js loaded');
 })();
