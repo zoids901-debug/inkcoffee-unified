@@ -1,0 +1,192 @@
+/* 공통 컴포넌트 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--fs-base);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* 헤더 */
+.app-header {
+  background: var(--header-bg);
+  color: var(--header-fg);
+  padding: 14px var(--gap-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  box-shadow: var(--shadow);
+  border-bottom: 3px solid var(--header-accent);
+}
+.app-header .brand { display: flex; align-items: center; gap: 10px; }
+.app-header .logo { font-size: 22px; }
+.app-header .title { font-size: var(--fs-lg); font-weight: 700; }
+.app-header .ver {
+  font-size: var(--fs-xs);
+  color: var(--header-accent);
+  background: rgba(74,144,226,0.18);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.app-header .global-controls { display: flex; gap: var(--gap-sm); font-size: var(--fs-sm); opacity: 0.85; }
+.period-display, .store-display {
+  background: rgba(255,255,255,0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* 탭 */
+.tabs {
+  display: flex;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 var(--gap-lg);
+  position: sticky;
+  top: 56px;
+  z-index: var(--z-tabs);
+  box-shadow: var(--shadow-sm);
+}
+.tab {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text-soft);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s;
+  font-family: inherit;
+}
+.tab:hover { color: var(--accent); }
+.tab.active {
+  color: var(--accent);
+}
+.tab.active::after {
+  content: '';
+  position: absolute;
+  left: 12px; right: 12px; bottom: 0;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+}
+
+/* 메인 영역 */
+#app {
+  padding: var(--gap-lg);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.tab-panel { display: block; }
+.tab-panel[hidden] { display: none; }
+
+/* 플레이스홀더 */
+.placeholder {
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--text-soft);
+}
+.placeholder h2 {
+  font-size: var(--fs-xl);
+  color: var(--text);
+  margin-bottom: var(--gap-sm);
+}
+.placeholder p {
+  font-size: var(--fs-md);
+  color: var(--text-mute);
+}
+
+/* 카드 (3개 탭 공통) */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--gap);
+  margin-bottom: var(--gap);
+  box-shadow: var(--shadow-sm);
+}
+.card h2 {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin-bottom: var(--gap);
+  color: var(--text);
+}
+
+/* 표 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-base);
+}
+th, td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: #fafbfd;
+  font-weight: 700;
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  position: sticky;
+  top: 0;
+}
+td.r, th.r { text-align: right; }
+
+/* 필터 버튼 (fbtn) */
+.fbtn {
+  padding: 6px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.fbtn:hover { border-color: var(--accent); color: var(--accent); }
+.fbtn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* 등급 */
+.rank-a { color: var(--rank-a); font-weight: 700; }
+.rank-b { color: var(--rank-b); font-weight: 700; }
+.rank-c { color: var(--rank-c); font-weight: 700; }
+
+/* 푸터 */
+.app-footer {
+  text-align: center;
+  padding: var(--gap-lg);
+  color: var(--text-mute);
+  font-size: var(--fs-sm);
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 10px var(--gap);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+  .app-header .title { font-size: var(--fs-md); }
+  .tabs { top: 84px; padding: 0 var(--gap-sm); overflow-x: auto; }
+  .tab { padding: 10px 14px; font-size: var(--fs-base); }
+  #app { padding: var(--gap); }
+}
