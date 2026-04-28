@@ -202,6 +202,18 @@ body {
   flex-direction: column;
   gap: 14px;
 }
+/* iframe 모드 — 풀 너비, 풀 높이 */
+.main-frame {
+  max-width: none;
+  padding: 0;
+}
+.tab-frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 96px);  /* 헤더 48 + ctrl-bar ~48 */
+  border: 0;
+  background: #F1F5F9;
+}
 .tab-panel { display: block; }
 .tab-panel[hidden] { display: none; }
 
