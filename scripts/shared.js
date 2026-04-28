@@ -215,7 +215,7 @@
     });
     updateAllBtn();
 
-    // Litepicker — 운영 대시보드와 동일한 설정 그대로
+    // Litepicker — Toss 스타일 + 좌우 분할
     if (window.Litepicker) {
       const def = computePeriod('mtd');
       const picker = new Litepicker({
@@ -228,9 +228,29 @@
         format: 'YYYY-MM-DD',
         startDate: def.start,
         endDate: def.end,
+        autoApply: false,                  // 확인 버튼 표시
+        dropdowns: { months: true, years: true, minYear: 2024, maxYear: 2027 },
+        buttonText: { apply: '확인', cancel: '취소', previousMonth: '<', nextMonth: '>' },
         setup(p) {
           p.on('selected', (s, e) => {
             setPeriod({ preset: 'custom', start: s.format('YYYY-MM-DD'), end: e.format('YYYY-MM-DD') });
+          });
+          // 오늘 날짜에 점 표시 (CSS는 .is-today에서 처리)
+          p.on('render', (ui) => {
+            // 헤더 표기 한글화: "YYYY년 M월" / 좌측은 드롭다운이라 그대로 둠
+            ui.querySelectorAll('.month-item').forEach(mi => {
+              const nameEl = mi.querySelector('.month-item-name');
+              const yearEl = mi.querySelector('.month-item-year');
+              if (yearEl && nameEl && !mi.querySelector('.dropdowns')) {
+                // 드롭다운 없는 쪽 (우측) → "YYYY년 M월" 형태
+                const m = parseInt(nameEl.dataset.monthItemName, 10);
+                const y = (yearEl.textContent || '').replace(/[^\d]/g, '');
+                if (!isNaN(m) && y) {
+                  nameEl.textContent = (m + 1) + '월';
+                  yearEl.textContent = y + '년';
+                }
+              }
+            });
           });
         }
       });
