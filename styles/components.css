@@ -110,26 +110,143 @@ body {
 }
 #dateRangeInput:focus { outline: none; }
 
-/* Litepicker — 운영 대시보드 스타일 그대로 */
+/* Litepicker — Toss 비주얼 스타일 */
 .litepicker {
   --color-primary-btn: #3B82F6;
-  --color-hover: #DBEAFE;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 13px;
+  --color-hover: #EFF6FF;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR', sans-serif;
+  font-size: 14px;
+  border: 1px solid #E2E8F0;
 }
 .litepicker .container__months {
-  box-shadow: 0 4px 20px rgba(0,0,0,.12);
-  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.10);
+  border-radius: 16px;
   background: #fff;
+  padding: 18px;
+  gap: 24px;
 }
-.litepicker .month-item-header button { color: #3B82F6; }
+.litepicker .month-item {
+  padding: 0;
+}
+.litepicker .month-item-header {
+  padding: 0 4px 16px;
+  margin-bottom: 4px;
+}
+.litepicker .month-item-header > div {
+  font-size: 15px; font-weight: 600; color: #1E293B;
+}
+.litepicker .month-item-header .month-item-name,
+.litepicker .month-item-header .month-item-year {
+  padding: 0 4px;
+}
+.litepicker .month-item-header button {
+  color: #94A3B8;
+  background: transparent;
+  width: 28px; height: 28px; border-radius: 6px;
+}
+.litepicker .month-item-header button:hover { background: #F1F5F9; color: #1E293B; }
+
+/* dropdowns (좌측 패널의 연/월 선택용) */
+.litepicker .month-item-header .dropdowns {
+  display: flex; gap: 4px;
+}
+.litepicker .month-item-header .dropdowns select {
+  border: none; background: transparent;
+  font-size: 15px; font-weight: 600; color: #1E293B;
+  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+}
+.litepicker .month-item-header .dropdowns select:hover { background: #F1F5F9; }
+
+/* 요일 행 */
+.litepicker .month-item-weekdays-row {
+  border: none;
+  margin-bottom: 4px;
+}
+.litepicker .month-item-weekdays-row > div {
+  font-size: 13px; font-weight: 500; color: #64748B;
+  padding: 6px 0; text-align: center;
+}
+/* 일요일 = 첫번째 컬럼 빨강 */
+.litepicker .month-item-weekdays-row > div:first-child { color: #EF4444; }
+
+/* 날짜 셀 */
+.litepicker .day-item {
+  font-size: 14px; font-weight: 400;
+  color: #1E293B;
+  padding: 0;
+  height: 38px; line-height: 38px;
+  border-radius: 50%;
+  margin: 1px 0;
+}
+.litepicker .day-item:hover {
+  background: #EFF6FF;
+  color: #1E293B;
+  box-shadow: none;
+  border-radius: 50%;
+}
+/* 일요일 날짜 빨강 (1번째, 8번째, 15번째 등) */
+.litepicker .container__days .day-item:nth-child(7n+1) { color: #EF4444; }
+/* 비활성(다른 달) */
+.litepicker .day-item.is-locked,
+.litepicker .day-item.is-locked:hover { color: #CBD5E1; background: transparent; cursor: default; }
+
+/* 오늘 - 파란 점 */
+.litepicker .day-item.is-today { position: relative; font-weight: 600; }
+.litepicker .day-item.is-today::after {
+  content: ''; position: absolute;
+  left: 50%; bottom: 6px;
+  width: 4px; height: 4px;
+  border-radius: 50%; background: #3B82F6;
+  transform: translateX(-50%);
+}
+/* 시작/종료 셀 */
 .litepicker .day-item.is-start-date,
 .litepicker .day-item.is-end-date {
-  background: #3B82F6 !important; color: #fff !important; border-radius: 50%;
+  background: #3B82F6 !important;
+  color: #fff !important;
+  border-radius: 50%;
+  font-weight: 600;
 }
+/* 범위 안 */
 .litepicker .day-item.is-in-range {
-  background: #DBEAFE !important; color: #1E293B !important;
+  background: #EFF6FF !important;
+  color: #1E293B !important;
+  border-radius: 0 !important;
 }
+
+/* 푸터 (확인 버튼) */
+.litepicker .container__footer {
+  padding: 16px 18px;
+  border-top: 1px solid #F1F5F9;
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+.litepicker .container__footer .button-apply {
+  background: #3B82F6;
+  color: #fff;
+  border: none; border-radius: 8px;
+  padding: 8px 22px;
+  font-weight: 600; font-size: 14px;
+  cursor: pointer;
+}
+.litepicker .container__footer .button-apply:hover { background: #2563EB; }
+.litepicker .container__footer .button-cancel {
+  background: transparent;
+  color: #64748B;
+  border: none; border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 500; font-size: 14px;
+  cursor: pointer;
+}
+.litepicker .container__footer .button-cancel:hover { background: #F1F5F9; color: #1E293B; }
+
+/* 입력 칩 — Toss 스타일 */
+.date-range {
+  border-color: #DBEAFE !important;
+  background: #F8FAFF !important;
+  border-radius: 999px !important;
+  padding: 6px 16px !important;
+}
+.date-range:hover { border-color: #93C5FD !important; }
 
 .ctrl-sep {
   width: 1px; height: 24px;
