@@ -234,9 +234,8 @@
           p.on('selected', (start, end) => {
             setPeriod({ preset: 'custom', start: start.format('YYYY-MM-DD'), end: end.format('YYYY-MM-DD') });
           });
-          // 헤더 월/요일을 한글 숫자로 강제 + 1개월씩 이동 강제 패치
+          // 헤더 월/요일을 한글로 강제
           p.on('render', (ui) => {
-            // 월/연도 한글화
             ui.querySelectorAll('.month-item-name').forEach(el => {
               const m = parseInt(el.dataset.monthItemName, 10);
               if (!isNaN(m)) el.textContent = (m + 1) + '월';
@@ -249,24 +248,28 @@
             ui.querySelectorAll('.month-item-weekdays-row > div').forEach((el, i) => {
               el.textContent = dows[i % 7];
             });
-            // ◀▶ 버튼: 1개월씩 이동 강제 (capture 단계로 기본 핸들러 차단)
-            ui.querySelectorAll('.button-previous-month, .button-next-month').forEach(btn => {
-              if (btn._oneMonthPatched) return;
-              btn._oneMonthPatched = true;
-              btn.addEventListener('click', (e) => {
-                e.preventDefault(); e.stopImmediatePropagation();
-                const isPrev = btn.classList.contains('button-previous-month');
-                // 현재 보이는 왼쪽 월 추출
-                const leftHeader = ui.querySelectorAll('.month-item-header')[0];
-                const mEl = leftHeader?.querySelector('.month-item-name');
-                const yEl = leftHeader?.querySelector('.month-item-year');
-                const m = parseInt(mEl?.dataset?.monthItemName ?? '0', 10);
-                const y = parseInt((yEl?.textContent ?? '').replace(/[^\d]/g,'') || new Date().getFullYear(), 10);
-                const target = new Date(y, m + (isPrev ? -1 : 1), 1);
-                p.gotoDate(target);
-              }, true);
-            });
           });
+
+          // 1개월씩 이동 — document click 캡처로 한 번만 가로채기
+          if (!window.__oneMonthNavInstalled) {
+            window.__oneMonthNavInstalled = true;
+            document.addEventListener('click', (e) => {
+              const btn = e.target.closest('.button-previous-month, .button-next-month');
+              if (!btn) return;
+              const root = btn.closest('.litepicker');
+              if (!root) return;
+              e.stopPropagation(); e.preventDefault();
+              const isPrev = btn.classList.contains('button-previous-month');
+              const leftHeader = root.querySelectorAll('.month-item-header')[0];
+              const mEl = leftHeader?.querySelector('.month-item-name');
+              const yEl = leftHeader?.querySelector('.month-item-year');
+              const m = parseInt(mEl?.dataset?.monthItemName ?? '0', 10);
+              const yTxt = (yEl?.textContent ?? '').replace(/[^\d]/g,'');
+              const y = parseInt(yTxt || new Date().getFullYear(), 10);
+              const target = new Date(y, m + (isPrev ? -1 : 1), 1);
+              if (App.picker && App.picker.gotoDate) App.picker.gotoDate(target);
+            }, true);
+          }
         }
       });
       App.picker = picker;
