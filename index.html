@@ -9,49 +9,82 @@
 </head>
 <body>
 
-<header class="app-header">
-  <div class="brand">
-    <span class="logo">☕</span>
-    <span class="title">인크커피 통합 대시보드</span>
-    <span class="ver">v0.1 · staging</span>
-  </div>
-  <div class="global-controls">
-    <span id="header-period" class="period-display">기간 · -</span>
-    <span id="header-store" class="store-display">매장 · -</span>
-  </div>
+<!-- 다크 헤더 (탭 포함) -->
+<header class="hdr">
+  <span class="hdr-title">☕ <em>인크커피</em> 통합 대시보드</span>
+  <span class="hdr-ver">v0.1 · staging</span>
+  <div class="sep"></div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" data-tab="product" role="tab">상품</button>
+    <button class="tab" data-tab="ops" role="tab">운영</button>
+    <button class="tab" data-tab="pl" role="tab">손익</button>
+  </nav>
+  <div class="hdr-spacer"></div>
 </header>
 
-<nav class="tabs">
-  <button class="tab" data-tab="product">상품</button>
-  <button class="tab" data-tab="ops">운영</button>
-  <button class="tab" data-tab="pl">손익</button>
-</nav>
+<!-- 컨트롤 바 (라이트, 전역 기간/매장) -->
+<div class="ctrl-bar">
+  <!-- 프리셋 -->
+  <div class="preset-group" id="preset-group">
+    <button class="preset-btn" data-preset="thismonth">이번 달</button>
+    <button class="preset-btn" data-preset="lastmonth">지난 달</button>
+    <button class="preset-btn active" data-preset="3m">최근 3개월</button>
+    <button class="preset-btn" data-preset="6m">최근 6개월</button>
+    <button class="preset-btn" data-preset="ytd">올해</button>
+    <button class="preset-btn" data-preset="custom">사용자 설정</button>
+  </div>
+
+  <!-- 기간 표시 / 직접 선택 -->
+  <div class="date-range" id="date-range" title="시작·종료 월 직접 선택">
+    <span class="dr-label">기간</span>
+    <input type="month" id="date-from" min="2024-01" max="2026-12">
+    <span class="dr-sep">~</span>
+    <input type="month" id="date-to" min="2024-01" max="2026-12">
+  </div>
+
+  <div class="ctrl-sep"></div>
+
+  <!-- 매장 pills -->
+  <div class="pills-group" id="store-pills">
+    <span class="pills-label">매장</span>
+    <span class="pill checked" data-store="전체">전체</span>
+    <span class="pill checked" data-store="가산">가산</span>
+    <span class="pill checked" data-store="다산">다산</span>
+    <span class="pill checked" data-store="수원">수원</span>
+    <span class="pill checked" data-store="하남">하남</span>
+    <span class="pill checked" data-store="광주">광주</span>
+    <span class="pill checked" data-store="운정">운정</span>
+  </div>
+</div>
 
 <main id="app">
   <section id="tab-product" class="tab-panel" hidden>
     <div class="placeholder">
       <h2>상품 대시보드</h2>
-      <p>이식 예정 — Step 2: product-dashboard 본문 흡수</p>
+      <p>이식 예정 — Step 2: <code>product-dashboard</code> 본문 흡수<br>
+      ABC 분석 / 메뉴 엔지니어링 / 매장별 메뉴 / 카테고리 드릴다운</p>
     </div>
   </section>
 
   <section id="tab-ops" class="tab-panel" hidden>
     <div class="placeholder">
       <h2>운영 대시보드</h2>
-      <p>이식 예정 — Step 3: inkc-dashboard 본문 흡수</p>
+      <p>이식 예정 — Step 3: <code>inkc-dashboard</code> 본문 흡수<br>
+      매출 페이스 / 매장별 비교 / 일별 트렌드</p>
     </div>
   </section>
 
   <section id="tab-pl" class="tab-panel" hidden>
     <div class="placeholder">
       <h2>손익 대시보드</h2>
-      <p>이식 예정 — Step 4: pl-dashboard + uploader 통합</p>
+      <p>이식 예정 — Step 4: <code>pl-dashboard</code> 본문 + <code>uploader.html</code> 통합<br>
+      통합 P&amp;L / 매장별 손익 / 판관비 분석 / <strong>엑셀 업로드 서브탭</strong></p>
     </div>
   </section>
 </main>
 
 <footer class="app-footer">
-  <span id="footer-status">통합 대시보드 (임시 빌드) — 기존 3개 사이트는 별도 운영 중</span>
+  통합 대시보드 (임시 빌드) — 기존 3개 사이트는 별도 운영 중. 검수 완료 후 inkc 운영 도메인으로 이전 예정.
 </footer>
 
 <script src="scripts/shared.js"></script>
