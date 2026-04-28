@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인크커피 통합 대시보드</title>
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="logo">☕</span>
+    <span class="title">인크커피 통합 대시보드</span>
+    <span class="ver">v0.1 · staging</span>
+  </div>
+  <div class="global-controls">
+    <span id="header-period" class="period-display">기간 · -</span>
+    <span id="header-store" class="store-display">매장 · -</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab" data-tab="product">상품</button>
+  <button class="tab" data-tab="ops">운영</button>
+  <button class="tab" data-tab="pl">손익</button>
+</nav>
+
+<main id="app">
+  <section id="tab-product" class="tab-panel" hidden>
+    <div class="placeholder">
+      <h2>상품 대시보드</h2>
+      <p>이식 예정 — Step 2: product-dashboard 본문 흡수</p>
+    </div>
+  </section>
+
+  <section id="tab-ops" class="tab-panel" hidden>
+    <div class="placeholder">
+      <h2>운영 대시보드</h2>
+      <p>이식 예정 — Step 3: inkc-dashboard 본문 흡수</p>
+    </div>
+  </section>
+
+  <section id="tab-pl" class="tab-panel" hidden>
+    <div class="placeholder">
+      <h2>손익 대시보드</h2>
+      <p>이식 예정 — Step 4: pl-dashboard + uploader 통합</p>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <span id="footer-status">통합 대시보드 (임시 빌드) — 기존 3개 사이트는 별도 운영 중</span>
+</footer>
+
+<script src="scripts/shared.js"></script>
+</body>
+</html>
