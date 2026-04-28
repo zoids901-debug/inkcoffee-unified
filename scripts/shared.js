@@ -80,6 +80,8 @@
     const inp = document.getElementById('dateRangeInput');
     if (inp) inp.value = `${fmt(period.start)} ~ ${fmt(period.end)}`;
     App.events.dispatchEvent(new CustomEvent('period', { detail: period }));
+    // 로드된 iframe 모두 동기화
+    syncAllFrames();
   }
 
   // ── 탭 라우팅 (lazy iframe 로드) ──────────────
@@ -121,11 +123,83 @@
     if (!frame) return;
     if (!frame.src && frame.dataset.src) {
       frame.src = frame.dataset.src;
-      frame.addEventListener('load', () => injectFrameStyles(name, frame), { once: false });
+      frame.addEventListener('load', () => {
+        injectFrameStyles(name, frame);
+        // 로드 직후 현재 기간으로 동기화
+        setTimeout(() => syncFrame(name, frame), 800);
+      }, { once: false });
     } else {
-      // 이미 로드된 경우 다시 한 번 주입 (재진입 안전)
       injectFrameStyles(name, frame);
+      syncFrame(name, frame);
     }
+  }
+
+  // ── iframe 동기화 (탭별 다른 필터 메커니즘 처리) ──────
+  function syncFrame(name, frame) {
+    const win = frame.contentWindow;
+    const doc = frame.contentDocument;
+    if (!win || !doc) return;
+    const period = App.state.period;
+    if (!period || !period.start) return;
+
+    try {
+      if (name === 'product') {
+        // YYYY-MM 형식
+        const fromYM = period.start.slice(0, 7);
+        const toYM   = period.end.slice(0, 7);
+        const mf = doc.getElementById('month-from');
+        const mt = doc.getElementById('month-to');
+        if (!mf || !mt || !mf.options.length) {
+          // 아직 옵션 안 채워짐, 재시도
+          setTimeout(() => syncFrame(name, frame), 500);
+          return;
+        }
+        mf.value = fromYM; mt.value = toYM;
+        if (typeof win.onRangeChange === 'function') win.onRangeChange();
+      }
+      else if (name === 'ops') {
+        // YYYY-MM-DD picker.setDateRange
+        if (win.picker && typeof win.picker.setDateRange === 'function') {
+          win.picker.setDateRange(period.start, period.end);
+          // setDateRange는 selected 이벤트 안 쏘므로 직접 호출
+          win.fpStart = period.start;
+          win.fpEnd   = period.end;
+          if (typeof win.render === 'function') win.render();
+        } else {
+          setTimeout(() => syncFrame(name, frame), 500);
+        }
+      }
+      else if (name === 'pl') {
+        // selMonths Set + buildMonthChecks + updateAll
+        if (!win.selMonths || typeof win.toggleMonth !== 'function') {
+          setTimeout(() => syncFrame(name, frame), 500);
+          return;
+        }
+        // 기간 내 모든 (year, monthIdx) 수집
+        const months = [];  // ['2026-01', '2026-02', ...]
+        let [y, m] = period.start.slice(0, 7).split('-').map(Number);
+        const [endY, endM] = period.end.slice(0, 7).split('-').map(Number);
+        while (y < endY || (y === endY && m <= endM)) {
+          months.push(`${y}-${String(m).padStart(2,'0')}`);
+          m++; if (m > 12) { m = 1; y++; }
+        }
+        win.selMonths.clear();
+        months.forEach(ym => win.selMonths.add(ym));
+        if (typeof win.buildMonthChecks === 'function') win.buildMonthChecks();
+        if (typeof win.updateAll === 'function') win.updateAll();
+      }
+    } catch (e) {
+      console.warn(`[App] syncFrame(${name}) failed:`, e);
+    }
+  }
+
+  // 모든 로드된 iframe 동기화
+  function syncAllFrames() {
+    TABS.forEach(name => {
+      const panel = document.getElementById(`tab-${name}`);
+      const frame = panel?.querySelector('iframe.tab-frame');
+      if (frame && frame.src) syncFrame(name, frame);
+    });
   }
   function showTab(name) {
     if (!TABS.includes(name)) name = 'product';
