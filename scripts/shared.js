@@ -171,18 +171,38 @@
     });
     updateAllBtn();
 
-    // Litepicker (날짜 범위 선택)
+    // Litepicker (날짜 범위 선택) — 한국어
     if (window.Litepicker) {
       const picker = new Litepicker({
         element: document.getElementById('dateRangeInput'),
         singleMode: false,
+        lang: 'ko-KR',
         format: 'YYYY-MM-DD',
         numberOfMonths: 2,
         numberOfColumns: 2,
         autoApply: true,
+        firstDay: 0,  // 일요일 시작
+        tooltipText: { one: '일', other: '일' },
+        tooltipNumber: (n) => n,
+        buttonText: { previousMonth: '◀', nextMonth: '▶', reset: '초기화', apply: '적용' },
         setup: (p) => {
           p.on('selected', (start, end) => {
             setPeriod({ preset: 'custom', start: start.format('YYYY-MM-DD'), end: end.format('YYYY-MM-DD') });
+          });
+          // 헤더 월/요일을 한글 숫자로 강제
+          p.on('render', (ui) => {
+            ui.querySelectorAll('.month-item-name').forEach(el => {
+              const m = parseInt(el.dataset.monthItemName, 10);
+              if (!isNaN(m)) el.textContent = (m + 1) + '월';
+            });
+            ui.querySelectorAll('.month-item-year').forEach(el => {
+              const y = el.textContent.replace(/[^\d]/g,'');
+              if (y) el.textContent = y + '년';
+            });
+            const dows = ['일','월','화','수','목','금','토'];
+            ui.querySelectorAll('.month-item-weekdays-row > div').forEach((el, i) => {
+              el.textContent = dows[i % 7];
+            });
           });
         }
       });
