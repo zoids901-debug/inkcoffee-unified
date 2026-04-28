@@ -1,0 +1,74 @@
+/* 디자인 토큰 — 3개 대시보드 공통 */
+:root {
+  /* 색 */
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --border: #e5e9f0;
+  --text: #1a1a2e;
+  --text-soft: #636e72;
+  --text-mute: #b2bec3;
+  --accent: #0984e3;
+  --accent-soft: #e3f2fd;
+  --good: #00b894;
+  --warn: #e17055;
+  --bad: #d63031;
+  --gold: #f5b041;
+
+  /* 헤더 */
+  --header-bg: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+  --header-fg: #ffffff;
+  --header-accent: #4a90e2;
+
+  /* 카테고리 색 */
+  --cat-drink: #4ECDC4;
+  --cat-bakery: #FFA07A;
+  --cat-merch: #95A5A6;
+  --cat-special: #6c5ce7;
+
+  /* 매장 색 */
+  --store-가산: #FF6B6B;
+  --store-다산: #4ECDC4;
+  --store-수원: #45B7D1;
+  --store-하남: #96CEB4;
+  --store-광주: #FECA57;
+  --store-운정: #C39BD3;
+
+  /* 등급 */
+  --rank-a: #2ecc71;
+  --rank-b: #f39c12;
+  --rank-c: #95a5a6;
+
+  /* 간격 */
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap: 16px;
+  --gap-lg: 24px;
+  --gap-xl: 32px;
+
+  /* 모서리/그림자 */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow: 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+
+  /* 타이포 */
+  --font: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR','Segoe UI',sans-serif;
+  --fs-xs: 10px;
+  --fs-sm: 11px;
+  --fs-base: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 24px;
+
+  /* z-index */
+  --z-header: 100;
+  --z-tabs: 90;
+  --z-modal: 1000;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* 일단 라이트만. 다크는 추후. */
+}
