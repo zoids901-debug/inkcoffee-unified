@@ -1,23 +1,30 @@
-/* 디자인 토큰 — 3개 대시보드 공통 */
+/* 디자인 토큰 — inkc-dashboard 스타일 채택 */
 :root {
-  /* 색 */
-  --bg: #f5f7fa;
-  --card: #ffffff;
-  --border: #e5e9f0;
-  --text: #1a1a2e;
-  --text-soft: #636e72;
-  --text-mute: #b2bec3;
-  --accent: #0984e3;
-  --accent-soft: #e3f2fd;
-  --good: #00b894;
-  --warn: #e17055;
-  --bad: #d63031;
-  --gold: #f5b041;
+  /* 색 (슬레이트 + 스카이블루 + 앰버 액센트) */
+  --bg: #F1F5F9;
+  --card: #FFFFFF;
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text: #1E293B;
+  --text-soft: #64748B;
+  --text-mute: #94A3B8;
+  --accent: #3B82F6;
+  --accent-soft: #DBEAFE;
+  --gold: #F59E0B;
+  --good: #15803D;
+  --good-bg: #DCFCE7;
+  --warn: #B45309;
+  --warn-bg: #FEF3C7;
+  --bad: #B91C1C;
+  --bad-bg: #FEE2E2;
+  --neutral-bg: #F1F5F9;
 
-  /* 헤더 */
-  --header-bg: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
-  --header-fg: #ffffff;
-  --header-accent: #4a90e2;
+  /* 헤더 (다크 슬레이트) */
+  --header-bg: #1E293B;
+  --header-fg: #FFFFFF;
+  --header-mute: #94A3B8;
+  --header-sep: #334155;
+  --header-accent: var(--gold);
 
   /* 카테고리 색 */
   --cat-drink: #4ECDC4;
@@ -25,18 +32,19 @@
   --cat-merch: #95A5A6;
   --cat-special: #6c5ce7;
 
-  /* 매장 색 */
+  /* 매장 색 (Pills) */
   --store-가산: #FF6B6B;
   --store-다산: #4ECDC4;
   --store-수원: #45B7D1;
   --store-하남: #96CEB4;
   --store-광주: #FECA57;
   --store-운정: #C39BD3;
+  --store-운정점: #C39BD3;
 
   /* 등급 */
-  --rank-a: #2ecc71;
-  --rank-b: #f39c12;
-  --rank-c: #95a5a6;
+  --rank-a: #16A34A;
+  --rank-b: #D97706;
+  --rank-c: #94A3B8;
 
   /* 간격 */
   --gap-xs: 4px;
@@ -48,27 +56,25 @@
   /* 모서리/그림자 */
   --radius-sm: 6px;
   --radius: 8px;
-  --radius-lg: 12px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow: 0 2px 6px rgba(0,0,0,0.06);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
 
   /* 타이포 */
-  --font: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR','Segoe UI',sans-serif;
-  --fs-xs: 10px;
-  --fs-sm: 11px;
-  --fs-base: 13px;
-  --fs-md: 14px;
-  --fs-lg: 16px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR', sans-serif;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 14px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
   --fs-xl: 20px;
   --fs-2xl: 24px;
 
   /* z-index */
-  --z-header: 100;
-  --z-tabs: 90;
+  --z-header: 200;
+  --z-ctrl: 190;
+  --z-popover: 250;
   --z-modal: 1000;
-}
-
-@media (prefers-color-scheme: dark) {
-  /* 일단 라이트만. 다크는 추후. */
 }
