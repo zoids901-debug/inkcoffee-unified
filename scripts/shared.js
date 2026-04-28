@@ -134,59 +134,89 @@
     }
   }
 
+  // iframe 안의 글로벌 스코프에서 코드 실행 (script 주입 방식 — let/const 변수 접근 가능)
+  function runInFrame(frame, code) {
+    const doc = frame.contentDocument;
+    if (!doc || !doc.body) return false;
+    try {
+      const s = doc.createElement('script');
+      s.textContent = code;
+      doc.body.appendChild(s);
+      doc.body.removeChild(s);
+      return true;
+    } catch (e) {
+      console.warn('[App] runInFrame failed:', e);
+      return false;
+    }
+  }
+
   // ── iframe 동기화 (탭별 다른 필터 메커니즘 처리) ──────
   function syncFrame(name, frame) {
-    const win = frame.contentWindow;
-    const doc = frame.contentDocument;
-    if (!win || !doc) return;
     const period = App.state.period;
     if (!period || !period.start) return;
+    const doc = frame.contentDocument;
+    if (!doc) return;
 
     try {
       if (name === 'product') {
-        // YYYY-MM 형식
+        // YYYY-MM
         const fromYM = period.start.slice(0, 7);
         const toYM   = period.end.slice(0, 7);
         const mf = doc.getElementById('month-from');
         const mt = doc.getElementById('month-to');
         if (!mf || !mt || !mf.options.length) {
-          // 아직 옵션 안 채워짐, 재시도
           setTimeout(() => syncFrame(name, frame), 500);
           return;
         }
-        mf.value = fromYM; mt.value = toYM;
-        if (typeof win.onRangeChange === 'function') win.onRangeChange();
+        // option value 형식 확인 후 매칭 (select option은 'YYYY-MM' 또는 'YYMM' 가능성)
+        const setSelect = (el, ym) => {
+          // 정확히 일치 우선
+          for (const opt of el.options) {
+            if (opt.value === ym) { el.value = opt.value; return true; }
+          }
+          // YYMM (예: '2604') 형식도 시도
+          const yymm = ym.slice(2,4) + ym.slice(5,7);
+          for (const opt of el.options) {
+            if (opt.value === yymm) { el.value = opt.value; return true; }
+          }
+          return false;
+        };
+        setSelect(mf, fromYM); setSelect(mt, toYM);
+        runInFrame(frame, `if (typeof onRangeChange === 'function') onRangeChange();`);
       }
       else if (name === 'ops') {
-        // YYYY-MM-DD picker.setDateRange
-        if (win.picker && typeof win.picker.setDateRange === 'function') {
-          win.picker.setDateRange(period.start, period.end);
-          // setDateRange는 selected 이벤트 안 쏘므로 직접 호출
-          win.fpStart = period.start;
-          win.fpEnd   = period.end;
-          if (typeof win.render === 'function') win.render();
-        } else {
-          setTimeout(() => syncFrame(name, frame), 500);
-        }
+        runInFrame(frame, `
+          try {
+            if (typeof picker !== 'undefined' && picker.setDateRange) {
+              picker.setDateRange('${period.start}', '${period.end}');
+            }
+            if (typeof fpStart !== 'undefined') fpStart = '${period.start}';
+            if (typeof fpEnd !== 'undefined') fpEnd = '${period.end}';
+            if (typeof curPreset !== 'undefined') curPreset = '${period.preset || ''}';
+            if (typeof render === 'function') render();
+          } catch (e) { console.warn('[ops sync]', e); }
+        `);
       }
       else if (name === 'pl') {
-        // selMonths Set + buildMonthChecks + updateAll
-        if (!win.selMonths || typeof win.toggleMonth !== 'function') {
-          setTimeout(() => syncFrame(name, frame), 500);
-          return;
-        }
-        // 기간 내 모든 (year, monthIdx) 수집
-        const months = [];  // ['2026-01', '2026-02', ...]
+        // 기간 내 월 목록 계산 후 selMonths 갱신
+        const months = [];
         let [y, m] = period.start.slice(0, 7).split('-').map(Number);
         const [endY, endM] = period.end.slice(0, 7).split('-').map(Number);
         while (y < endY || (y === endY && m <= endM)) {
           months.push(`${y}-${String(m).padStart(2,'0')}`);
           m++; if (m > 12) { m = 1; y++; }
         }
-        win.selMonths.clear();
-        months.forEach(ym => win.selMonths.add(ym));
-        if (typeof win.buildMonthChecks === 'function') win.buildMonthChecks();
-        if (typeof win.updateAll === 'function') win.updateAll();
+        const monthsLit = JSON.stringify(months);
+        runInFrame(frame, `
+          try {
+            if (typeof selMonths !== 'undefined') {
+              selMonths.clear();
+              ${monthsLit}.forEach(ym => selMonths.add(ym));
+            }
+            if (typeof buildMonthChecks === 'function') buildMonthChecks();
+            if (typeof updateAll === 'function') updateAll();
+          } catch (e) { console.warn('[pl sync]', e); }
+        `);
       }
     } catch (e) {
       console.warn(`[App] syncFrame(${name}) failed:`, e);
