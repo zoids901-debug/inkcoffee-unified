@@ -256,7 +256,7 @@
     // 탭별 호환 안 되는 프리셋 자동 보정
     const cur = App.state.period?.preset;
     let needFix = false;
-    if (name === 'pl' && (cur === 'yesterday' || cur === 'week' || cur === '30d')) needFix = true;
+    if (name === 'pl' && (cur === 'yesterday' || cur === 'week')) needFix = true;
     if (name !== 'pl' && (cur === '3m' || cur === '6m')) needFix = true;
     if (needFix) {
       const p = computePeriod('mtd');
