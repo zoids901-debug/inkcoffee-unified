@@ -253,26 +253,37 @@
         `);
       }
       else if (name === 'pl') {
-        // 기간 내 월 목록 계산
-        const months = [];
+        // PL 형식: selYears = Set('YYYY'), selMonths = Set('M월')
+        const years = new Set();
+        const monthLabels = new Set();
         let [y, m] = period.start.slice(0, 7).split('-').map(Number);
         const [endY, endM] = period.end.slice(0, 7).split('-').map(Number);
         while (y < endY || (y === endY && m <= endM)) {
-          months.push(`${y}-${String(m).padStart(2,'0')}`);
+          years.add(String(y));
+          monthLabels.add(`${m}월`);
           m++; if (m > 12) { m = 1; y++; }
         }
+        // PL은 연도 내 모든 월이면 selMonths 비움(=전체) 관례 — 비교 단순화 위해
+        // 항상 채워둠 (사용자가 명시적 범위)
+        const yearArr = [...years];
+        const monthArr = [...monthLabels];
         // 매장명 변환 (하남 → 미사점 등)
         const plStores = stores.map(s => PL_STORE_MAP[s]).filter(Boolean);
         runInFrame(frame, `
           try {
+            if (typeof selYears !== 'undefined') {
+              selYears.clear();
+              ${JSON.stringify(yearArr)}.forEach(y => selYears.add(y));
+            }
             if (typeof selMonths !== 'undefined') {
               selMonths.clear();
-              ${JSON.stringify(months)}.forEach(ym => selMonths.add(ym));
+              ${JSON.stringify(monthArr)}.forEach(ml => selMonths.add(ml));
             }
             if (typeof selStores !== 'undefined') {
               selStores.clear();
               ${isAllStores ? '' : `${JSON.stringify(plStores)}.forEach(s => selStores.add(s));`}
             }
+            if (typeof buildYearChecks === 'function') buildYearChecks();
             if (typeof buildMonthChecks === 'function') buildMonthChecks();
             if (typeof buildStorePanel === 'function') buildStorePanel();
             if (typeof updateAll === 'function') updateAll();
