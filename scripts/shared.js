@@ -126,13 +126,14 @@
   function lazyLoadFrame(name) {
     const panel = document.getElementById(`tab-${name}`);
     if (!panel) return;
-    const frame = panel.querySelector('iframe.tab-frame');
+    // 서브탭 있으면 첫 번째 visible 패널에서 iframe 찾음
+    const visibleSub = panel.querySelector('.subtab-panel:not([hidden])');
+    const frame = (visibleSub || panel).querySelector('iframe.tab-frame');
     if (!frame) return;
     if (!frame.src && frame.dataset.src) {
       frame.src = frame.dataset.src;
       frame.addEventListener('load', () => {
         injectFrameStyles(name, frame);
-        // 로드 직후 현재 기간으로 동기화
         setTimeout(() => syncFrame(name, frame), 800);
       }, { once: false });
     } else {
@@ -315,6 +316,25 @@
     // 탭 클릭
     document.querySelectorAll('.hdr-tab').forEach(b => {
       b.addEventListener('click', () => showTab(b.dataset.tab));
+    });
+
+    // 서브탭 (손익 → 대시보드/업로드)
+    document.querySelectorAll('.subtab').forEach(b => {
+      b.addEventListener('click', () => {
+        const target = b.dataset.subtab;
+        b.parentElement.querySelectorAll('.subtab').forEach(sb =>
+          sb.classList.toggle('active', sb === b)
+        );
+        const section = b.closest('.tab-panel');
+        section.querySelectorAll('.subtab-panel').forEach(p => {
+          p.hidden = !p.id.endsWith(target);
+        });
+        // lazy load 업로드 iframe
+        const frame = section.querySelector(`#pl-${target} iframe`);
+        if (frame && !frame.src && frame.dataset.src) {
+          frame.src = frame.dataset.src;
+        }
+      });
     });
     window.addEventListener('hashchange', () => {
       const t = (location.hash || '#ops').slice(1);
