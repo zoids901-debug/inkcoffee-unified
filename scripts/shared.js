@@ -159,29 +159,32 @@
 
     try {
       if (name === 'product') {
-        // YYYY-MM
-        const fromYM = period.start.slice(0, 7);
+        const fromYM = period.start.slice(0, 7);  // 'YYYY-MM'
         const toYM   = period.end.slice(0, 7);
         const mf = doc.getElementById('month-from');
         const mt = doc.getElementById('month-to');
-        if (!mf || !mt || !mf.options.length) {
-          setTimeout(() => syncFrame(name, frame), 500);
+        // 옵션 2개 이상 있어야 데이터 로드 완료 (placeholder + 월목록)
+        if (!mf || !mt || mf.options.length < 2) {
+          setTimeout(() => syncFrame(name, frame), 800);
           return;
         }
-        // option value 형식 확인 후 매칭 (select option은 'YYYY-MM' 또는 'YYMM' 가능성)
-        const setSelect = (el, ym) => {
-          // 정확히 일치 우선
-          for (const opt of el.options) {
-            if (opt.value === ym) { el.value = opt.value; return true; }
+        // 매칭: 정확 → YYMM('2604') → YY-MM 등 다양한 형식 대비
+        const yymmFrom = fromYM.slice(2,4) + fromYM.slice(5,7);  // '2604'
+        const yymmTo   = toYM.slice(2,4) + toYM.slice(5,7);
+        const findOpt = (el, candidates) => {
+          for (const c of candidates) {
+            for (const opt of el.options) if (opt.value === c) return c;
           }
-          // YYMM (예: '2604') 형식도 시도
-          const yymm = ym.slice(2,4) + ym.slice(5,7);
-          for (const opt of el.options) {
-            if (opt.value === yymm) { el.value = opt.value; return true; }
-          }
-          return false;
+          // fallback: 가장 가까운(작거나 같은) 값
+          const sorted = [...el.options].map(o => o.value).filter(v => v).sort();
+          let best = sorted[0];
+          for (const v of sorted) if (v <= candidates[candidates.length-1]) best = v;
+          return best;
         };
-        setSelect(mf, fromYM); setSelect(mt, toYM);
+        const fVal = findOpt(mf, [fromYM, yymmFrom]);
+        const tVal = findOpt(mt, [toYM, yymmTo]);
+        mf.value = fVal; mt.value = tVal;
+        console.log('[product sync]', {fromYM, toYM, fVal, tVal, optCount: mf.options.length});
         runInFrame(frame, `if (typeof onRangeChange === 'function') onRangeChange();`);
       }
       else if (name === 'ops') {
@@ -256,16 +259,21 @@
       if (t !== App.state.activeTab) showTab(t);
     });
 
-    // 프리셋 버튼 — 운영과 동일하게 picker.setDateRange() 호출
+    // 프리셋 버튼
     document.querySelectorAll('.preset-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = computePeriod(btn.dataset.p);
-        if (p) {
-          setPeriod(p);
+        if (!p) return;
+        // picker.setDateRange가 selected 이벤트 발화 시 무시하도록 플래그
+        App._programmaticPicker = true;
+        try {
           if (App.picker && App.picker.setDateRange) {
             App.picker.setDateRange(p.start, p.end);
           }
+        } finally {
+          App._programmaticPicker = false;
         }
+        setPeriod(p);
       });
     });
 
@@ -324,7 +332,7 @@
     });
     updateAllBtn();
 
-    // Litepicker — 운영 대시보드와 동일 설정 verbatim
+    // Litepicker
     if (window.Litepicker) {
       const def = computePeriod('mtd');
       const picker = new Litepicker({
@@ -339,6 +347,8 @@
         endDate: def.end,
         setup(p) {
           p.on('selected', (s, e) => {
+            // 프로그램이 picker.setDateRange() 호출했을 때는 무시
+            if (App._programmaticPicker) return;
             setPeriod({ preset: 'custom', start: s.format('YYYY-MM-DD'), end: e.format('YYYY-MM-DD') });
           });
         }
