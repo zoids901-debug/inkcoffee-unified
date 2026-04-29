@@ -253,22 +253,18 @@
         `);
       }
       else if (name === 'pl') {
-        // PL 형식: selYears = Set('YYYY'), selMonths = Set('M월')
+        // PL 형식: selYears = Set('YYYY'), selMonths = Set('M월') (비우면 전체)
         const years = new Set();
-        const monthLabels = new Set();
         let [y, m] = period.start.slice(0, 7).split('-').map(Number);
         const [endY, endM] = period.end.slice(0, 7).split('-').map(Number);
         while (y < endY || (y === endY && m <= endM)) {
           years.add(String(y));
-          monthLabels.add(`${m}월`);
           m++; if (m > 12) { m = 1; y++; }
         }
-        // PL은 연도 내 모든 월이면 selMonths 비움(=전체) 관례 — 비교 단순화 위해
-        // 항상 채워둠 (사용자가 명시적 범위)
         const yearArr = [...years];
-        const monthArr = [...monthLabels];
         // 매장명 변환 (하남 → 미사점 등)
         const plStores = stores.map(s => PL_STORE_MAP[s]).filter(Boolean);
+        // selMonths는 비움 — unified의 기간 필터가 이미 시각화되므로 PL 내부 월 dim 불필요
         runInFrame(frame, `
           try {
             if (typeof selYears !== 'undefined') {
@@ -277,7 +273,6 @@
             }
             if (typeof selMonths !== 'undefined') {
               selMonths.clear();
-              ${JSON.stringify(monthArr)}.forEach(ml => selMonths.add(ml));
             }
             if (typeof selStores !== 'undefined') {
               selStores.clear();
