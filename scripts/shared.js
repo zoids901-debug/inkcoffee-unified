@@ -204,12 +204,15 @@
         mf.value = fVal; mt.value = tVal;
         runInFrame(frame, `
           try {
+            // selStores 먼저 갱신 (loadRange가 끝난 후 update()가 자동 호출됨)
             if (typeof selStores !== 'undefined') {
               selStores.clear();
               ${isAllStores ? '' : `${JSON.stringify(stores)}.forEach(s => selStores.add(s));`}
+              const lbl = document.getElementById('store-label');
+              if (lbl) lbl.textContent = selStores.size===0 ? '' : '● ' + [...selStores].join(' + ') + ' 보는 중';
             }
+            // onRangeChange → loadRange → update() 가 비동기로 호출됨. 우리가 update() 또 호출하면 충돌.
             if (typeof onRangeChange === 'function') onRangeChange();
-            if (typeof update === 'function') update();
           } catch (e) { console.warn('[product sync]', e); }
         `);
       }
