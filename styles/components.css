@@ -92,8 +92,8 @@ body {
 .preset-btn.active { background: #3B82F6 !important; border-color: #3B82F6 !important; color: #fff !important; box-shadow: 0 2px 6px rgba(59,130,246,.35); font-weight: 700; }
 /* 어제·이번 주는 운영 탭에서만 (일 단위 데이터 가능) */
 body:not([data-tab="ops"]) .preset-btn.ops-only { display: none; }
-/* 최근 3·6개월은 손익 탭에서만 */
-body:not([data-tab="pl"]) .preset-btn.pl-only { display: none; }
+/* 최근 3·6개월은 운영 탭에선 숨김 (월 단위 분석은 상품·손익에서) */
+body[data-tab="ops"] .preset-btn.month-trend { display: none; }
 
 .date-range {
   display: flex;
