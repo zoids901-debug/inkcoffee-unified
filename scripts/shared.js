@@ -177,42 +177,50 @@
 
     try {
       if (name === 'product') {
-        const fromYM = period.start.slice(0, 7);  // 'YYYY-MM'
-        const toYM   = period.end.slice(0, 7);
-        const mf = doc.getElementById('month-from');
-        const mt = doc.getElementById('month-to');
-        // 옵션 2개 이상 있어야 데이터 로드 완료 (placeholder + 월목록)
-        if (!mf || !mt || mf.options.length < 2) {
-          setTimeout(() => syncFrame(name, frame), 800);
-          return;
-        }
-        // 매칭: 정확 → YYMM('2604') → YY-MM 등 다양한 형식 대비
-        const yymmFrom = fromYM.slice(2,4) + fromYM.slice(5,7);  // '2604'
-        const yymmTo   = toYM.slice(2,4) + toYM.slice(5,7);
-        const findOpt = (el, candidates) => {
-          for (const c of candidates) {
-            for (const opt of el.options) if (opt.value === c) return c;
+        // 새 API 우선: loadDateRange가 있으면 일/월 자동 분기
+        const win = frame.contentWindow;
+        const hasNewAPI = win && typeof win.loadDateRange === 'function';
+        if (!hasNewAPI) {
+          // product-dashboard 아직 로딩 중 — 잠시 후 재시도
+          const mf = doc.getElementById('month-from');
+          if (!mf || mf.options.length < 2) {
+            setTimeout(() => syncFrame(name, frame), 800);
+            return;
           }
-          // fallback: 가장 가까운(작거나 같은) 값
-          const sorted = [...el.options].map(o => o.value).filter(v => v).sort();
-          let best = sorted[0];
-          for (const v of sorted) if (v <= candidates[candidates.length-1]) best = v;
-          return best;
-        };
-        const fVal = findOpt(mf, [fromYM, yymmFrom]);
-        const tVal = findOpt(mt, [toYM, yymmTo]);
-        mf.value = fVal; mt.value = tVal;
+        }
         runInFrame(frame, `
           try {
-            // selStores 먼저 갱신 (loadRange가 끝난 후 update()가 자동 호출됨)
+            // selStores 먼저 갱신
             if (typeof selStores !== 'undefined') {
               selStores.clear();
               ${isAllStores ? '' : `${JSON.stringify(stores)}.forEach(s => selStores.add(s));`}
               const lbl = document.getElementById('store-label');
               if (lbl) lbl.textContent = selStores.size===0 ? '' : '● ' + [...selStores].join(' + ') + ' 보는 중';
             }
-            // onRangeChange → loadRange → update() 가 비동기로 호출됨. 우리가 update() 또 호출하면 충돌.
-            if (typeof onRangeChange === 'function') onRangeChange();
+            // 새 API: loadDateRange가 일/월 자동 분기
+            if (typeof loadDateRange === 'function') {
+              loadDateRange('${period.start}', '${period.end}');
+            } else if (typeof onRangeChange === 'function') {
+              // fallback: 기존 select 기반
+              const mf = document.getElementById('month-from');
+              const mt = document.getElementById('month-to');
+              if (mf && mt) {
+                const fromYM = '${period.start.slice(0,7)}';
+                const toYM   = '${period.end.slice(0,7)}';
+                const yymmFrom = fromYM.slice(2,4) + fromYM.slice(5,7);
+                const yymmTo   = toYM.slice(2,4) + toYM.slice(5,7);
+                const find = (el, cands) => {
+                  for (const c of cands) for (const o of el.options) if (o.value === c) return c;
+                  const sorted = [...el.options].map(o=>o.value).filter(v=>v).sort();
+                  let best = sorted[0];
+                  for (const v of sorted) if (v <= cands[cands.length-1]) best = v;
+                  return best;
+                };
+                mf.value = find(mf, [fromYM+'.json', yymmFrom+'.json', fromYM, yymmFrom]);
+                mt.value = find(mt, [toYM+'.json',   yymmTo+'.json',   toYM,   yymmTo]);
+                onRangeChange();
+              }
+            }
           } catch (e) { console.warn('[product sync]', e); }
         `);
       }
@@ -299,7 +307,8 @@
     // 탭별 호환 안 되는 프리셋 자동 보정 (이번 달로 리셋)
     const cur = App.state.period?.preset;
     let needFix = false;
-    if (name !== 'ops' && (cur === 'yesterday' || cur === 'week')) needFix = true;
+    // 손익만 일 단위 프리셋 불가 (운영·상품은 모두 가능)
+    if (name === 'pl' && (cur === 'yesterday' || cur === 'week')) needFix = true;
     if (name === 'ops' && (cur === '3m' || cur === '6m')) needFix = true;
     if (needFix) {
       const p = computePeriod('mtd');
