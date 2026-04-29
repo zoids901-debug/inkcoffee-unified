@@ -253,11 +253,11 @@
     if (location.hash !== `#${name}`) history.replaceState(null, '', `#${name}`);
     App.events.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
 
-    // 탭별 호환 안 되는 프리셋 자동 보정
+    // 탭별 호환 안 되는 프리셋 자동 보정 (이번 달로 리셋)
     const cur = App.state.period?.preset;
     let needFix = false;
-    if (name === 'pl' && (cur === 'yesterday' || cur === 'week')) needFix = true;
-    if (name !== 'pl' && (cur === '3m' || cur === '6m')) needFix = true;
+    if (name !== 'ops' && (cur === 'yesterday' || cur === 'week')) needFix = true;
+    if (name !== 'pl'  && (cur === '3m' || cur === '6m')) needFix = true;
     if (needFix) {
       const p = computePeriod('mtd');
       if (p) {
