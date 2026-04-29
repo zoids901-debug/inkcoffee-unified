@@ -253,17 +253,18 @@
     if (location.hash !== `#${name}`) history.replaceState(null, '', `#${name}`);
     App.events.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
 
-    // 손익 탭으로 전환 시 현재 프리셋이 일 단위(어제/이번 주/최근 30일)면 이번 달로 자동 변경
-    if (name === 'pl') {
-      const cur = App.state.period?.preset;
-      if (cur === 'yesterday' || cur === 'week' || cur === '30d') {
-        const p = computePeriod('mtd');
-        if (p) {
-          App._programmaticPicker = true;
-          try { if (App.picker?.setDateRange) App.picker.setDateRange(p.start, p.end); }
-          finally { App._programmaticPicker = false; }
-          setPeriod(p);
-        }
+    // 탭별 호환 안 되는 프리셋 자동 보정
+    const cur = App.state.period?.preset;
+    let needFix = false;
+    if (name === 'pl' && (cur === 'yesterday' || cur === 'week' || cur === '30d')) needFix = true;
+    if (name !== 'pl' && (cur === '3m' || cur === '6m')) needFix = true;
+    if (needFix) {
+      const p = computePeriod('mtd');
+      if (p) {
+        App._programmaticPicker = true;
+        try { if (App.picker?.setDateRange) App.picker.setDateRange(p.start, p.end); }
+        finally { App._programmaticPicker = false; }
+        setPeriod(p);
       }
     }
   }
