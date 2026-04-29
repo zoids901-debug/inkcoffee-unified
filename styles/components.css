@@ -90,10 +90,10 @@ body {
 }
 .preset-btn:hover { border-color: #3B82F6; color: #3B82F6; }
 .preset-btn.active { background: #3B82F6 !important; border-color: #3B82F6 !important; color: #fff !important; box-shadow: 0 2px 6px rgba(59,130,246,.35); font-weight: 700; }
-/* 손익 탭에서는 일 단위 프리셋(어제/이번 주/최근 30일) 숨김 */
-body[data-tab="pl"] .preset-btn.day-only { display: none; }
-/* 상품/운영 탭에서는 월 단위 프리셋(최근 3·6개월) 숨김 */
-body:not([data-tab="pl"]) .preset-btn.month-only { display: none; }
+/* 어제·이번 주는 운영 탭에서만 (일 단위 데이터 가능) */
+body:not([data-tab="ops"]) .preset-btn.ops-only { display: none; }
+/* 최근 3·6개월은 손익 탭에서만 */
+body:not([data-tab="pl"]) .preset-btn.pl-only { display: none; }
 
 .date-range {
   display: flex;
