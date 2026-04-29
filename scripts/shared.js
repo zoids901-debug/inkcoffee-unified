@@ -42,12 +42,26 @@
     const now = new Date();
     let start, end;
     switch(preset) {
+      case 'yesterday': {
+        const d = new Date(now); d.setDate(d.getDate()-1);
+        start = end = d; break;
+      }
+      case 'week': {
+        const d = new Date(now);
+        const dow = d.getDay() || 7;  // 1=월 ~ 7=일
+        d.setDate(d.getDate() - dow + 1);
+        start = d; end = now; break;
+      }
       case 'mtd': {
         start = monthStart(now); end = now; break;
       }
       case 'last_month': {
         const d = new Date(now); d.setMonth(d.getMonth()-1);
         start = monthStart(d); end = monthEnd(d); break;
+      }
+      case '30d': {
+        const d = new Date(now); d.setDate(d.getDate()-29);
+        start = d; end = now; break;
       }
       case '3m': {
         const d = new Date(now); d.setMonth(d.getMonth()-2);
@@ -230,6 +244,7 @@
   function showTab(name) {
     if (!TABS.includes(name)) name = 'product';
     App.state.activeTab = name;
+    document.body.dataset.tab = name;  // CSS에서 일 단위 프리셋 숨김에 활용
     document.querySelectorAll('.hdr-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
     document.querySelectorAll('.tab-panel').forEach(p => {
       p.hidden = (p.id !== `tab-${name}`);
@@ -237,6 +252,20 @@
     lazyLoadFrame(name);
     if (location.hash !== `#${name}`) history.replaceState(null, '', `#${name}`);
     App.events.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
+
+    // 손익 탭으로 전환 시 현재 프리셋이 일 단위(어제/이번 주/최근 30일)면 이번 달로 자동 변경
+    if (name === 'pl') {
+      const cur = App.state.period?.preset;
+      if (cur === 'yesterday' || cur === 'week' || cur === '30d') {
+        const p = computePeriod('mtd');
+        if (p) {
+          App._programmaticPicker = true;
+          try { if (App.picker?.setDateRange) App.picker.setDateRange(p.start, p.end); }
+          finally { App._programmaticPicker = false; }
+          setPeriod(p);
+        }
+      }
+    }
   }
   App.showTab = showTab;
 
