@@ -304,14 +304,19 @@
     if (location.hash !== `#${name}`) history.replaceState(null, '', `#${name}`);
     App.events.dispatchEvent(new CustomEvent('tabchange', { detail: name }));
 
-    // 탭별 호환 안 되는 프리셋 자동 보정 (이번 달로 리셋)
+    // 탭별 호환/기본 프리셋 자동 보정
     const cur = App.state.period?.preset;
-    let needFix = false;
-    // 손익만 일 단위 프리셋 불가 (운영·상품은 모두 가능)
-    if (name === 'pl' && (cur === 'yesterday' || cur === 'week')) needFix = true;
-    if (name === 'ops' && (cur === '3m' || cur === '6m')) needFix = true;
-    if (needFix) {
-      const p = computePeriod('mtd');
+    let targetPreset = null;
+    // 손익: 단기 프리셋(어제·이번 주·이번 달)이면 올해(ytd)로 자동 변경
+    if (name === 'pl' && (cur === 'yesterday' || cur === 'week' || cur === 'mtd')) {
+      targetPreset = 'ytd';
+    }
+    // 운영: 장기 프리셋(3·6개월)이면 이번 달로
+    if (name === 'ops' && (cur === '3m' || cur === '6m')) {
+      targetPreset = 'mtd';
+    }
+    if (targetPreset && targetPreset !== cur) {
+      const p = computePeriod(targetPreset);
       if (p) {
         App._programmaticPicker = true;
         try { if (App.picker?.setDateRange) App.picker.setDateRange(p.start, p.end); }
