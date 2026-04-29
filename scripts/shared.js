@@ -34,42 +34,35 @@
   };
   const fmt = s => s ? s.replaceAll('-', '.') : '';
 
+  // 월 시작 / 월 끝 헬퍼
+  const monthStart = (d) => { const x = new Date(d); x.setDate(1); return x; };
+  const monthEnd   = (d) => { const x = new Date(d); x.setMonth(x.getMonth()+1, 0); return x; };
+
   function computePeriod(preset) {
     const now = new Date();
-    const today = toStr(now);
     let start, end;
     switch(preset) {
-      case 'yesterday': {
-        const d = new Date(now); d.setDate(d.getDate()-1);
-        start = end = toStr(d); break;
-      }
-      case 'week': {
-        const d = new Date(now);
-        const dow = d.getDay() || 7;  // 1=월 ~ 7=일
-        d.setDate(d.getDate() - dow + 1);
-        start = toStr(d); end = today; break;
-      }
       case 'mtd': {
-        const d = new Date(now); d.setDate(1);
-        start = toStr(d); end = today; break;
+        start = monthStart(now); end = now; break;
       }
       case 'last_month': {
-        const d = new Date(now); d.setDate(1); d.setMonth(d.getMonth()-1);
-        start = toStr(d);
-        const e = new Date(d); e.setMonth(e.getMonth()+1); e.setDate(0);
-        end = toStr(e); break;
-      }
-      case '30d': {
-        const d = new Date(now); d.setDate(d.getDate()-29);
-        start = toStr(d); end = today; break;
+        const d = new Date(now); d.setMonth(d.getMonth()-1);
+        start = monthStart(d); end = monthEnd(d); break;
       }
       case '3m': {
-        const d = new Date(now); d.setDate(1); d.setMonth(d.getMonth()-2);
-        start = toStr(d); end = today; break;
+        const d = new Date(now); d.setMonth(d.getMonth()-2);
+        start = monthStart(d); end = now; break;
+      }
+      case '6m': {
+        const d = new Date(now); d.setMonth(d.getMonth()-5);
+        start = monthStart(d); end = now; break;
+      }
+      case 'ytd': {
+        start = new Date(now.getFullYear(), 0, 1); end = now; break;
       }
       default: return null;
     }
-    return { preset, start, end };
+    return { preset, start: toStr(start), end: toStr(end) };
   }
 
   function setPeriod(period) {
