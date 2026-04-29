@@ -90,6 +90,8 @@ body {
 }
 .preset-btn:hover { border-color: #3B82F6; color: #3B82F6; }
 .preset-btn.active { background: #3B82F6 !important; border-color: #3B82F6 !important; color: #fff !important; box-shadow: 0 2px 6px rgba(59,130,246,.35); font-weight: 700; }
+/* 손익 탭에서는 일 단위 프리셋(어제/이번 주/최근 30일) 숨김 */
+body[data-tab="pl"] .preset-btn.day-only { display: none; }
 
 .date-range {
   display: flex;
