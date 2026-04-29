@@ -56,7 +56,16 @@
     <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/inkc-dashboard/" loading="lazy"></iframe>
   </section>
   <section id="tab-pl" class="tab-panel" hidden>
-    <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/pl-dashboard/" loading="lazy"></iframe>
+    <div class="subtabs">
+      <button class="subtab active" data-subtab="dashboard">대시보드</button>
+      <button class="subtab" data-subtab="upload">엑셀 업로드</button>
+    </div>
+    <div id="pl-dashboard" class="subtab-panel">
+      <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/pl-dashboard/" loading="lazy"></iframe>
+    </div>
+    <div id="pl-upload" class="subtab-panel" hidden>
+      <iframe class="tab-frame upload-frame" data-src="https://zoids901-debug.github.io/pl-dashboard/uploader.html" loading="lazy"></iframe>
+    </div>
   </section>
 </div>
 
