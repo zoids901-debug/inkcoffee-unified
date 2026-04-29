@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>인크커피 통합 대시보드</title>
+<title>데모카페 통합 대시보드 (DEMO)</title>
 <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
 <link rel="stylesheet" href="styles/tokens.css">
 <link rel="stylesheet" href="styles/components.css">
@@ -12,7 +12,7 @@
 
 <!-- 헤더 -->
 <div class="hdr">
-  <div class="hdr-title">인크<em>커피</em> 통합 대시보드</div>
+  <div class="hdr-title">데모<em>카페</em> 통합 대시보드</div>
   <div class="hdr-tabs" role="tablist">
     <button class="hdr-tab" data-tab="ops">운영</button>
     <button class="hdr-tab" data-tab="product">상품</button>
@@ -50,10 +50,10 @@
 <!-- 본문 (iframe 임베드 — Step 2~4 임시. 추후 인라인 전환 예정) -->
 <div class="main main-frame">
   <section id="tab-product" class="tab-panel" hidden>
-    <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/product-dashboard/" loading="lazy"></iframe>
+    <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/product-dashboard-demo/" loading="lazy"></iframe>
   </section>
   <section id="tab-ops" class="tab-panel" hidden>
-    <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/inkc-dashboard/" loading="lazy"></iframe>
+    <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/inkc-dashboard-demo/" loading="lazy"></iframe>
   </section>
   <section id="tab-pl" class="tab-panel" hidden>
     <div class="subtabs">
@@ -61,10 +61,10 @@
       <button class="subtab" data-subtab="upload">엑셀 업로드</button>
     </div>
     <div id="pl-dashboard" class="subtab-panel">
-      <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/pl-dashboard/" loading="lazy"></iframe>
+      <iframe class="tab-frame" data-src="https://zoids901-debug.github.io/pl-dashboard-demo/" loading="lazy"></iframe>
     </div>
     <div id="pl-upload" class="subtab-panel" hidden>
-      <iframe class="tab-frame upload-frame" data-src="https://zoids901-debug.github.io/pl-dashboard/uploader.html" loading="lazy"></iframe>
+      <iframe class="tab-frame upload-frame" data-src="https://zoids901-debug.github.io/pl-dashboard-demo/uploader.html" loading="lazy"></iframe>
     </div>
   </section>
 </div>
