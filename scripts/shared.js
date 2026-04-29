@@ -92,7 +92,7 @@
   }
 
   // ── 탭 라우팅 (lazy iframe 로드) ──────────────
-  const TABS = ['product', 'ops', 'pl'];
+  const TABS = ['ops', 'product', 'pl'];
 
   // 각 iframe 내부에서 숨길 selector (제목 + 자체 필터바)
   const HIDE_SELECTORS = {
@@ -242,7 +242,7 @@
     });
   }
   function showTab(name) {
-    if (!TABS.includes(name)) name = 'product';
+    if (!TABS.includes(name)) name = 'ops';
     App.state.activeTab = name;
     document.body.dataset.tab = name;  // CSS에서 일 단위 프리셋 숨김에 활용
     document.querySelectorAll('.hdr-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
@@ -257,7 +257,7 @@
     const cur = App.state.period?.preset;
     let needFix = false;
     if (name !== 'ops' && (cur === 'yesterday' || cur === 'week')) needFix = true;
-    if (name !== 'pl'  && (cur === '3m' || cur === '6m')) needFix = true;
+    if (name === 'ops' && (cur === '3m' || cur === '6m')) needFix = true;
     if (needFix) {
       const p = computePeriod('mtd');
       if (p) {
@@ -278,7 +278,7 @@
       b.addEventListener('click', () => showTab(b.dataset.tab));
     });
     window.addEventListener('hashchange', () => {
-      const t = (location.hash || '#product').slice(1);
+      const t = (location.hash || '#ops').slice(1);
       if (t !== App.state.activeTab) showTab(t);
     });
 
@@ -383,7 +383,7 @@
     setPeriod(computePeriod('mtd'));
 
     // 초기 탭
-    const t = (location.hash || '#product').slice(1);
+    const t = (location.hash || '#ops').slice(1);
     showTab(t);
   });
 
