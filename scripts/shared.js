@@ -157,12 +157,22 @@
     }
   }
 
+  // 매장명 매핑 (부모 표준명 → pl 표시명)
+  const PL_STORE_MAP = {
+    '하남':'미사점','가산':'가산점','다산':'다산점',
+    '수원':'수원점','광주':'광주점','운정':'운정점',
+  };
+
   // ── iframe 동기화 (탭별 다른 필터 메커니즘 처리) ──────
   function syncFrame(name, frame) {
     const period = App.state.period;
     if (!period || !period.start) return;
     const doc = frame.contentDocument;
     if (!doc) return;
+
+    // 매장 상태
+    const stores = [...App.state.activeStores];
+    const isAllStores = stores.length === STORES.length;
 
     try {
       if (name === 'product') {
@@ -191,8 +201,16 @@
         const fVal = findOpt(mf, [fromYM, yymmFrom]);
         const tVal = findOpt(mt, [toYM, yymmTo]);
         mf.value = fVal; mt.value = tVal;
-        console.log('[product sync]', {fromYM, toYM, fVal, tVal, optCount: mf.options.length});
-        runInFrame(frame, `if (typeof onRangeChange === 'function') onRangeChange();`);
+        runInFrame(frame, `
+          try {
+            if (typeof selStores !== 'undefined') {
+              selStores.clear();
+              ${isAllStores ? '' : `${JSON.stringify(stores)}.forEach(s => selStores.add(s));`}
+            }
+            if (typeof onRangeChange === 'function') onRangeChange();
+            if (typeof update === 'function') update();
+          } catch (e) { console.warn('[product sync]', e); }
+        `);
       }
       else if (name === 'ops') {
         runInFrame(frame, `
@@ -203,12 +221,27 @@
             if (typeof fpStart !== 'undefined') fpStart = '${period.start}';
             if (typeof fpEnd !== 'undefined') fpEnd = '${period.end}';
             if (typeof curPreset !== 'undefined') curPreset = '${period.preset || ''}';
+            if (typeof activeStores !== 'undefined') {
+              activeStores.clear();
+              ${JSON.stringify(stores)}.forEach(s => activeStores.add(s));
+              if (typeof updateAllBtn === 'function') updateAllBtn();
+              // 내부 pill 색칠 갱신
+              document.querySelectorAll('.pill[data-store]').forEach(el => {
+                if (activeStores.has(el.dataset.store)) {
+                  el.classList.add('on');
+                  el.style.background = (typeof COLORS !== 'undefined' && COLORS[el.dataset.store]) ? COLORS[el.dataset.store] + '22' : '';
+                } else {
+                  el.classList.remove('on');
+                  el.style.background = '';
+                }
+              });
+            }
             if (typeof render === 'function') render();
           } catch (e) { console.warn('[ops sync]', e); }
         `);
       }
       else if (name === 'pl') {
-        // 기간 내 월 목록 계산 후 selMonths 갱신
+        // 기간 내 월 목록 계산
         const months = [];
         let [y, m] = period.start.slice(0, 7).split('-').map(Number);
         const [endY, endM] = period.end.slice(0, 7).split('-').map(Number);
@@ -216,14 +249,20 @@
           months.push(`${y}-${String(m).padStart(2,'0')}`);
           m++; if (m > 12) { m = 1; y++; }
         }
-        const monthsLit = JSON.stringify(months);
+        // 매장명 변환 (하남 → 미사점 등)
+        const plStores = stores.map(s => PL_STORE_MAP[s]).filter(Boolean);
         runInFrame(frame, `
           try {
             if (typeof selMonths !== 'undefined') {
               selMonths.clear();
-              ${monthsLit}.forEach(ym => selMonths.add(ym));
+              ${JSON.stringify(months)}.forEach(ym => selMonths.add(ym));
+            }
+            if (typeof selStores !== 'undefined') {
+              selStores.clear();
+              ${isAllStores ? '' : `${JSON.stringify(plStores)}.forEach(s => selStores.add(s));`}
             }
             if (typeof buildMonthChecks === 'function') buildMonthChecks();
+            if (typeof buildStorePanel === 'function') buildStorePanel();
             if (typeof updateAll === 'function') updateAll();
           } catch (e) { console.warn('[pl sync]', e); }
         `);
@@ -328,6 +367,7 @@
       }
       updateAllBtn();
       App.events.dispatchEvent(new CustomEvent('stores', { detail: [...App.state.activeStores] }));
+      syncAllFrames();
     });
 
     STORES.forEach(s => {
@@ -350,6 +390,7 @@
         }
         updateAllBtn();
         App.events.dispatchEvent(new CustomEvent('stores', { detail: [...App.state.activeStores] }));
+      syncAllFrames();
       });
       pillsEl.appendChild(el);
     });
